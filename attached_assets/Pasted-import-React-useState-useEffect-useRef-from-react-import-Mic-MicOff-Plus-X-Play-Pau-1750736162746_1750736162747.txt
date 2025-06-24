@@ -1,0 +1,405 @@
+import React, { useState, useEffect, useRef } from ‘react’;
+import { Mic, MicOff, Plus, X, Play, Pause, MoreHorizontal, ChevronDown, Check } from ‘lucide-react’;
+
+const ChefAudioApp = () => {
+const [currentNote, setCurrentNote] = useState(null);
+const [notes, setNotes] = useState([]);
+const [isRecording, setIsRecording] = useState(false);
+const [showNameInput, setShowNameInput] = useState(true);
+const [newNoteName, setNewNoteName] = useState(’’);
+const [showNoteSelector, setShowNoteSelector] = useState(false);
+const [selectedAudio, setSelectedAudio] = useState(null);
+const [showTextInput, setShowTextInput] = useState(false);
+const [textNote, setTextNote] = useState(’’);
+const [playingAudio, setPlayingAudio] = useState(null);
+
+const recordingTimer = useRef(null);
+const [recordingDuration, setRecordingDuration] = useState(0);
+
+// Create new note
+const createNote = () => {
+if (!newNoteName.trim()) return;
+
+```
+const note = {
+  id: Date.now(),
+  name: newNoteName,
+  audioRecordings: [],
+  textNotes: [],
+  createdAt: new Date()
+};
+
+setNotes(prev => [...prev, note]);
+setCurrentNote(note);
+setNewNoteName('');
+setShowNameInput(false);
+```
+
+};
+
+// Start recording
+const startRecording = () => {
+if (!currentNote) return;
+
+```
+setIsRecording(true);
+setRecordingDuration(0);
+
+recordingTimer.current = setInterval(() => {
+  setRecordingDuration(prev => prev + 1);
+}, 1000);
+```
+
+};
+
+// Stop recording
+const stopRecording = () => {
+if (!isRecording || !currentNote) return;
+
+```
+clearInterval(recordingTimer.current);
+setIsRecording(false);
+
+const audioRecord = {
+  id: Date.now(),
+  duration: recordingDuration,
+  timestamp: new Date(),
+  content: `Recording ${currentNote.audioRecordings.length + 1}`
+};
+
+const updatedNote = {
+  ...currentNote,
+  audioRecordings: [...currentNote.audioRecordings, audioRecord]
+};
+
+setNotes(prev => prev.map(note => 
+  note.id === currentNote.id ? updatedNote : note
+));
+setCurrentNote(updatedNote);
+setRecordingDuration(0);
+```
+
+};
+
+// Add text note
+const addTextNote = () => {
+if (!textNote.trim() || !currentNote) return;
+
+```
+const newTextNote = {
+  id: Date.now(),
+  content: textNote,
+  timestamp: new Date()
+};
+
+const updatedNote = {
+  ...currentNote,
+  textNotes: [...currentNote.textNotes, newTextNote]
+};
+
+setNotes(prev => prev.map(note => 
+  note.id === currentNote.id ? updatedNote : note
+));
+setCurrentNote(updatedNote);
+setTextNote('');
+setShowTextInput(false);
+```
+
+};
+
+// Switch to different note
+const switchNote = (note) => {
+setCurrentNote(note);
+setShowNoteSelector(false);
+};
+
+const formatDuration = (seconds) => {
+const mins = Math.floor(seconds / 60);
+const secs = seconds % 60;
+return `${mins}:${secs.toString().padStart(2, '0')}`;
+};
+
+// Name input screen (similar to Visuel’s clean input style)
+if (showNameInput || !currentNote) {
+return (
+<div className="min-h-screen bg-white">
+{/* Header */}
+<div className="pt-14 pb-8 px-6">
+<div className="text-center">
+<h1 className="text-2xl font-semibold text-gray-900 mb-2">New Recipe</h1>
+<p className="text-gray-500 text-sm">Give your recipe a name to get started</p>
+</div>
+</div>
+
+```
+    {/* Input Section */}
+    <div className="px-6">
+      <div className="bg-gray-50 rounded-2xl p-4 mb-6">
+        <input
+          type="text"
+          placeholder="Recipe name"
+          value={newNoteName}
+          onChange={(e) => setNewNoteName(e.target.value)}
+          className="w-full bg-transparent text-lg font-medium text-gray-900 placeholder-gray-400 outline-none"
+          onKeyPress={(e) => e.key === 'Enter' && createNote()}
+          autoFocus
+        />
+      </div>
+
+      <button
+        onClick={createNote}
+        disabled={!newNoteName.trim()}
+        className={`w-full py-4 rounded-2xl font-semibold text-white transition-all ${
+          newNoteName.trim()
+            ? 'bg-blue-500 hover:bg-blue-600 active:scale-95'
+            : 'bg-gray-300 cursor-not-allowed'
+        }`}
+      >
+        Create Recipe
+      </button>
+    </div>
+
+    {/* Recent recipes */}
+    {notes.length > 0 && (
+      <div className="px-6 mt-12">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent Recipes</h3>
+        <div className="space-y-3">
+          {notes.slice(-3).reverse().map(note => (
+            <button
+              key={note.id}
+              onClick={() => {
+                setCurrentNote(note);
+                setShowNameInput(false);
+              }}
+              className="w-full p-4 bg-gray-50 rounded-2xl text-left hover:bg-gray-100 transition-colors"
+            >
+              <div className="font-medium text-gray-900">{note.name}</div>
+              <div className="text-sm text-gray-500 mt-1">
+                {note.audioRecordings.length} audio • {note.textNotes.length} notes
+              </div>
+            </button>
+          ))}
+        </div>
+      </div>
+    )}
+  </div>
+);
+```
+
+}
+
+// Note selector overlay
+if (showNoteSelector) {
+return (
+<div className="min-h-screen bg-white">
+{/* Header */}
+<div className="flex items-center justify-between px-6 pt-14 pb-6">
+<button
+onClick={() => setShowNoteSelector(false)}
+className=“text-blue-500 font-medium”
+>
+Cancel
+</button>
+<h1 className="text-lg font-semibold text-gray-900">Select Recipe</h1>
+<button
+onClick={() => {
+setShowNoteSelector(false);
+setShowNameInput(true);
+}}
+className=“text-blue-500”
+>
+<Plus className="w-6 h-6" />
+</button>
+</div>
+
+```
+    {/* Notes list */}
+    <div className="px-6">
+      {notes.map(note => (
+        <button
+          key={note.id}
+          onClick={() => switchNote(note)}
+          className="w-full p-4 mb-3 bg-gray-50 rounded-2xl text-left hover:bg-gray-100 transition-colors"
+        >
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="font-medium text-gray-900">{note.name}</div>
+              <div className="text-sm text-gray-500 mt-1">
+                {note.audioRecordings.length} recordings • {note.textNotes.length} notes
+              </div>
+            </div>
+            {currentNote?.id === note.id && (
+              <Check className="w-5 h-5 text-blue-500" />
+            )}
+          </div>
+        </button>
+      ))}
+    </div>
+  </div>
+);
+```
+
+}
+
+// Main recording interface (Visuel-inspired clean design)
+return (
+<div className="min-h-screen bg-white">
+{/* Header */}
+<div className="flex items-center justify-between px-6 pt-14 pb-6">
+<button
+onClick={() => setShowNoteSelector(true)}
+className=“flex items-center space-x-1 text-blue-500”
+>
+<span className="font-medium">{currentNote.name}</span>
+<ChevronDown className="w-4 h-4" />
+</button>
+<button
+onClick={() => setShowNameInput(true)}
+className=“text-blue-500”
+>
+<Plus className="w-6 h-6" />
+</button>
+</div>
+
+```
+  {/* Recording Section */}
+  <div className="flex-1 flex flex-col items-center justify-center px-6 py-12">
+    {/* Recording timer */}
+    {isRecording && (
+      <div className="mb-8 text-center">
+        <div className="text-4xl font-light text-red-500 mb-2">
+          {formatDuration(recordingDuration)}
+        </div>
+        <div className="flex items-center justify-center space-x-2">
+          <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+          <span className="text-red-500 text-sm font-medium">Recording</span>
+        </div>
+      </div>
+    )}
+
+    {/* Record Button */}
+    <div className="relative mb-8">
+      <button
+        onMouseDown={startRecording}
+        onMouseUp={stopRecording}
+        onMouseLeave={stopRecording}
+        onTouchStart={startRecording}
+        onTouchEnd={stopRecording}
+        className={`w-24 h-24 rounded-full flex items-center justify-center transition-all duration-200 ${
+          isRecording 
+            ? 'bg-red-500 scale-110 shadow-lg shadow-red-500/30' 
+            : 'bg-blue-500 hover:bg-blue-600 shadow-lg'
+        }`}
+      >
+        {isRecording ? (
+          <div className="w-6 h-6 bg-white rounded"></div>
+        ) : (
+          <Mic className="w-8 h-8 text-white" />
+        )}
+      </button>
+    </div>
+
+    <p className="text-gray-500 text-center text-sm max-w-xs">
+      {isRecording ? 'Release to stop recording' : 'Hold to record your ingredients and measurements'}
+    </p>
+
+    {/* Add text note button */}
+    <button
+      onClick={() => setShowTextInput(true)}
+      className="mt-8 px-6 py-3 bg-gray-100 rounded-full text-gray-700 font-medium hover:bg-gray-200 transition-colors"
+    >
+      Add Text Note
+    </button>
+  </div>
+
+  {/* Recordings List */}
+  {(currentNote.audioRecordings.length > 0 || currentNote.textNotes.length > 0) && (
+    <div className="px-6 pb-8">
+      <div className="bg-gray-50 rounded-2xl p-4">
+        <h3 className="font-semibold text-gray-900 mb-4">
+          {currentNote.audioRecordings.length + currentNote.textNotes.length} Items
+        </h3>
+        
+        <div className="space-y-3">
+          {/* Audio recordings */}
+          {currentNote.audioRecordings.map((audio, index) => (
+            <div key={audio.id} className="flex items-center justify-between py-2">
+              <div className="flex items-center space-x-3">
+                <button
+                  onClick={() => setPlayingAudio(playingAudio === audio.id ? null : audio.id)}
+                  className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center"
+                >
+                  {playingAudio === audio.id ? (
+                    <Pause className="w-4 h-4 text-white" />
+                  ) : (
+                    <Play className="w-4 h-4 text-white ml-0.5" />
+                  )}
+                </button>
+                <div>
+                  <div className="font-medium text-gray-900 text-sm">Audio {index + 1}</div>
+                  <div className="text-xs text-gray-500">
+                    {formatDuration(audio.duration)} • {audio.timestamp.toLocaleTimeString()}
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+
+          {/* Text notes */}
+          {currentNote.textNotes.map((note) => (
+            <div key={note.id} className="py-2">
+              <div className="text-sm text-gray-900 mb-1">{note.content}</div>
+              <div className="text-xs text-gray-500">
+                {note.timestamp.toLocaleTimeString()}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  )}
+
+  {/* Text input overlay */}
+  {showTextInput && (
+    <div className="fixed inset-0 bg-white z-50">
+      <div className="flex items-center justify-between px-6 pt-14 pb-6">
+        <button
+          onClick={() => {
+            setShowTextInput(false);
+            setTextNote('');
+          }}
+          className="text-blue-500 font-medium"
+        >
+          Cancel
+        </button>
+        <h1 className="text-lg font-semibold text-gray-900">Add Note</h1>
+        <button
+          onClick={addTextNote}
+          disabled={!textNote.trim()}
+          className={`font-medium ${textNote.trim() ? 'text-blue-500' : 'text-gray-300'}`}
+        >
+          Add
+        </button>
+      </div>
+
+      <div className="px-6">
+        <div className="bg-gray-50 rounded-2xl p-4">
+          <textarea
+            value={textNote}
+            onChange={(e) => setTextNote(e.target.value)}
+            placeholder="Add measurements, ingredients, or cooking notes..."
+            className="w-full bg-transparent text-gray-900 placeholder-gray-400 outline-none resize-none"
+            rows={8}
+            autoFocus
+          />
+        </div>
+      </div>
+    </div>
+  )}
+</div>
+```
+
+);
+};
+
+export default ChefAudioApp;
