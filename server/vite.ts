@@ -5,6 +5,9 @@ import { createServer as createViteServer, createLogger } from "vite";
 import { type Server } from "http";
 import viteConfig from "../vite.config";
 import { nanoid } from "nanoid";
+import { fileURLToPath } from 'url';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const viteLogger = createLogger();
 
@@ -46,7 +49,7 @@ export async function setupVite(app: Express, server: Server) {
 
     try {
       const clientTemplate = path.resolve(
-        import.meta.dirname,
+        __dirname,
         "..",
         "client",
         "index.html",
@@ -69,7 +72,7 @@ export async function setupVite(app: Express, server: Server) {
 
 export function serveStatic(app: Express) {
   // Look for built files in dist directory (where Vite builds to)
-  const distPath = path.resolve(import.meta.dirname, "..", "dist");
+  const distPath = path.resolve(__dirname, "..", "dist");
 
   console.log("Looking for static files in:", distPath);
   console.log("Directory exists:", fs.existsSync(distPath));
