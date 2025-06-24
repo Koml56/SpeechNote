@@ -6,3 +6,6 @@ startCommand = "npm start"
 
 [build.nixpacks]
 packageManager = "npm"
+
+[build.nixpacks.packages]
+nodejs = "20"
