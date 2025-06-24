@@ -1,0 +1,8 @@
+# .gitignore for SpeechNote
+node_modules/
+dist/
+.env
+*.log
+client/node_modules/
+client/dist/
+server/node_modules/
